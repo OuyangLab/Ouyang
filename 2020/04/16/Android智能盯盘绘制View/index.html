@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/Ouyang/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/Ouyang/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aaron">
+  <meta name="keywords" content="">
+  <title>Android智能盯盘绘制View - 一个会摄影的程序猿</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/5.12.1/css/all.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/mdbootstrap/4.13.0/css/mdb.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/3.0.1/github-markdown.min.css" />
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1067060_qzomjdt8bmp.css">
+
+
+
+  <link  rel="stylesheet" href="/Ouyang/lib/prettify/tomorrow-night-eighties.min.css" />
+
+<link  rel="stylesheet" href="/Ouyang/css/main.css" />
+
+
+  <link defer rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+<!-- 自定义样式保持在最底部 -->
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/Ouyang/">&nbsp;<strong>一个会摄影的程序猿</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/Ouyang/">首页</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/Ouyang/archives/">归档</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/Ouyang/categories/">分类</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/Ouyang/tags/">标签</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/Ouyang/about/">关于</a>
+          </li>
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="view intro-2" id="background" parallax=true
+         style="background: url('/Ouyang/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask rgba-black-light flex-center">
+          <div class="container text-center white-text fadeInUp">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+                <p class="mt-3 post-meta">
+                  <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                  星期四, 四月 16日 2020, 6:27 晚上
+                </p>
+              
+
+              <p class="mt-1">
+                
+                  
+                  <span class="post-meta">
+                    <i class="far fa-chart-bar"></i>
+                    1.8k 字
+                  </span>
+                
+
+                
+                  
+                  <span class="post-meta">
+                      <i class="far fa-clock"></i>
+                      6 分钟
+                  </span>
+                
+
+                
+              </p>
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5 z-depth-3" id="board">
+          <div class="post-content mx-auto" id="post">
+            
+            <div class="markdown-body">
+              <p>​    智能盯盘主要涉及两个自绘View，一个圆环，一个仪表盘，都是带圆的，用到的关键方法都是画布的Canvas.drawArc()方法。自绘View无非就是继承View复写View一些方法，得到我们自己想要的View，那你真的了解View的生命周期吗？我们自绘View用的最多的一个方法就是复写onDraw(Canvas canvas)方法，利用强大的Canvas以及画笔Paint来搞事。</p>
+<ul>
+<li><h5><span id="view的关键生命周期流程图"><strong>View的关键生命周期流程图</strong></span></h5></li>
+</ul>
+<p><img src="/Ouyang/images/pan/1.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+<ol>
+<li><p>首先是构造方法，Contructor</p>
+</li>
+<li><p>onFinishInflate，这个布局通过LayoutInflater进行填充的时候会走到这个方法。</p>
+</li>
+<li><p>onAttachedToWindow,当前View跟它对应的Window已经绑定。</p>
+</li>
+<li><p>onMeasure，开始测量，调用时间，当控件的父元素放置该控件时候，用于告诉父元素该控件的大小，父元素问该控件需要多大空间，该控件复写onMeasure(int widthMeasureSpec, int heightMeasureSpec)方法，调用setMeasuredDimension(int w, int h)告诉父元素具体大小。该控件怎么通过父元素的widthMeasureSpec, heightMeasureSpec告诉父元素具体大小呢？强大的MeasureSepc类，封装了父布局传递给子布局的布局要求，每个MeasureSpec代表了一组宽度和高度的要求，MeasureSpec由size和mode组成。Size可以通过 MeasureSpec. getSize(int measureSpec)拿到，mode通过MeasureSpec.getMode(int measureSpec)拿到，mode主要有以下三种类型：<br>1）MeasureSpec.EXACTLY<br>表示当layout_为match_parent或者具体的值时，mode代表具体精确的值。<br>2）MeasureSpec.AT_MOST<br>表示当layout_为wrap_content，能获得的最大尺寸，一般我们都会在自绘View设置一个默认最小宽度的minSize，我们通过取最小值。<br>3）MeasureSpec.UNSPECIFIED<br>表示当无法确定尺寸的时候，这个时候会用默认的最小值。一般代码都是如下这样设置：<br><img src="/Ouyang/images/pan/2.png" srcset="/Ouyang/img/loading.gif" alt="alt"><br><img src="/Ouyang/images/pan/3.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+</li>
+<li><p>onSizeChanged, 测量之后会回调这个方法，当尺寸变化后会调用，一般都是第一次测量后会调用，后面再测量，若尺寸没有变化就不会再去调用，我们获取的宽高基本在这个方法获取。<br><img src="/Ouyang/images/pan/4.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+</li>
+<li><p>onLayout，测量的时候进行布局，确定子View的位置。</p>
+</li>
+<li><p>onDraw, 确定完宽高和位置，利用强大的画布Canvas和画笔Paint绘制我们所需要的View。</p>
+</li>
+<li><p>onDetachedFromWindow，退出当前Activity后会走到这个方法。</p>
+<p>我们通过Log打印也可以看到View的大概生命周期流程如下：<br><img src="/Ouyang/images/pan/24.png" srcset="/Ouyang/img/loading.gif" alt="alt"><br>一般我们自绘制view复写onMeasure, onSizeChanged, onDraw 这三个方法就可以了。</p>
+</li>
+</ol>
+<ul>
+<li><h5><span id="圆环自绘view">圆环自绘View</span></h5><p>我们主要看下onDraw方法是怎么画的。</p>
+</li>
+</ul>
+<ol>
+<li><p>首先我们画之前，需要将数据源设置进来，我们创建了个这样的数据model，包含数值，颜色；当然以后需要扩展，比如需要画标签，线条啥的，可以往这个model里面添加对应的属性进来。<br><img src="/Ouyang/images/pan/6.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+</li>
+<li><p>在onDraw 方法里面，为了我们坐标的更好的对称换算，将默认的坐标系原点平移到当前画布的中心位置。<br><img src="/Ouyang/images/pan/7.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+</li>
+<li><p>算出传入进来的所有数据model的总数值 total.</p>
+</li>
+<li><p>循环画每一段圆环。我们用到的函数就是画布的drawArc方法，canvas.drawArc(RectF oval, float startAngle, float sweepAngle, Boolean useCenter, Paint paint)；oval代表圆环的外切矩形，startAngle代表画圆环的起始位置角度，sweepAngle代表当前圆环扫过的角度，sweepAngle大于0表示顺时针扫，小于0表示逆时针扫；useCenter表示是否包含中心原点连线，如果为true，画出的圆环将会是个衔接原点的扇形饼状，所以我们如果画饼状图，只要调成true就可以了；false就表示画圆环了。Paint表示画笔。<br>1）根据当前数值和总数值total，先算当前要画的这段圆环占整个圆环的角度，即sweepAngle.<br>2）我们用了个变量startAngle来控制每一段圆环的起始位置角度，默认从0度开始画圆环，当然可以根据实际需要调整。大概代码如下，很简单。<br><img src="/Ouyang/images/pan/8.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+</li>
+<li><p>可以看我画的草图如下：<br><img src="/Ouyang/images/pan/9.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+</li>
+<li><p>注意，圆环真正的半径是mRadius – mPaint.getStrokeWidth()*0.5f，即大圆的半径减去画笔粗度的一半。参数rectF也为这个圆环半径的外切矩形。</p>
+</li>
+<li><p>测试结果：<br><img src="/Ouyang/images/pan/10.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+</li>
+</ol>
+<ol start="8">
+<li>如果需要往每段圆环上画折线以及标签，可以在每一段循环画圆环后补充相应的代码，有兴趣的可以去看下被注释掉的“功能拓展部分”这段代码，里面涉及到一些数学的三角函数的坐标换算。在分支smart_stare类TransactionActivityRingChartView里面可以了解。<br>测试结果：<br><img src="/Ouyang/images/pan/11.png" srcset="/Ouyang/img/loading.gif" alt="alt"></li>
+</ol>
+<ul>
+<li><h5><span id="仪表盘自绘view">仪表盘自绘View</span></h5></li>
+</ul>
+<ol>
+<li><p>首先将坐标系原点移动到距离原来中心3/4个距离的地方，因为底部要画标签，所以这里空出点距离给标签，canvas.translate(mWidth / 2, mHeight *3 / 4)。<br><img src="/Ouyang/images/pan/12.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+</li>
+<li><p>画半圆弧。原理类似。这里由于视觉上半圆弧有渐变色，需要给画笔设置渐变色shader, 三种色值分别位于九点钟、三点钟和12点钟方向，对应的postions为{0.5f, 0.75f, 1f}，代码如下：<br><img src="/Ouyang/images/pan/13.png" srcset="/Ouyang/img/loading.gif" alt="alt"><br><img src="/Ouyang/images/pan/14.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+</li>
+<li><p>画圆弧刻度线，采用画布旋转的方法，结合画布的保存与恢复方法可以很方便的画出来。视觉稿刻度间距总共分为60等分，在0，10，20，30，40，50，60对画笔以及刻度长度值做一些特殊的属性值设置。<br><img src="/Ouyang/images/pan/15.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+</li>
+<li><p>画文字标签，这里给大家普及下很key的一个参数，baseLine, 即基准Y坐标。canvas.drawText(String text, float x, float y, Paint paint), x指的是文字的起始坐标，这里的y指的是文字标签基准线的baseLine坐标.<br><img src="/Ouyang/images/pan/16.png" srcset="/Ouyang/img/loading.gif" alt="alt"><br>如上图标注，通常用FontMetrics的top, bottom变量就可以算出基准线的坐标。top是相对于BaseLine偏移量，因为它在基准线上面，所以为负数，bottom是相对于BaseLine偏移量，为正数。通常我们计算文字的高度就是bottom – top;<br><img src="/Ouyang/images/pan/17.png" srcset="/Ouyang/img/loading.gif" alt="alt"><br>baseLine的坐标 = 1/2 * getFontHeight() + getHeight() / 2 – FontMetrics.bottom.<br>画文字标签的主要代码如下：<br><img src="/Ouyang/images/pan/18.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+</li>
+</ol>
+<ol start="5">
+<li><p>画指针，通过canvas.drawBitmap(Bitmap bitmap, Rect src, Rect dst, Paint paint)；bitmap为图片资源对象，src表示对图片进行裁剪，若为null表示显示整个图片;dst是图片在Canvas画布中显示的区域，src会被自动缩放/平移以适应它。我们通过画布的保存，恢复以及旋转方法，并用变量mStartAngle控制坐标系的旋转角度，默认mStartAngle = 0,即坐标系不旋转，从90度开始画，而且这个变量是通过动画类ValueAnimator.getAnimatedValue实时拿到的，这样就可以实时看到指针在旋转动起来。<br>1）首先我们要将drawable图片资源转换成bitmap<br><img src="/Ouyang/images/pan/19.png" srcset="/Ouyang/img/loading.gif" alt="alt"><br>2）通过画布的保存，画布的旋转，画布的恢复方法画指针<br><img src="/Ouyang/images/pan/20.png" srcset="/Ouyang/img/loading.gif" alt="alt"><br>草图大概如下：<br><img src="/Ouyang/images/pan/21.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+</li>
+<li><p>通过动画类ValueAnimator执行动画，我们根据外部传入的数值算出终止角度mTotalAngle，传入 ValueAnimator.ofFloat(mStartAngle, mTotalAngle);通过动画接口回调，函数getAnimatedValue拿到实时值mStartAngle，然后重新绘，得到我们想要的动画。代码如下：<br><img src="/Ouyang/images/pan/22.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+</li>
+<li><p>测试结果：<br><img src="/Ouyang/images/pan/23.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+</li>
+</ol>
+
+            </div>
+            <hr>
+            <div>
+              <p>
+                
+                  <span>
+                <i class="iconfont icon-inbox"></i>
+                    
+                      <a class="hover-with-bg" href="/Ouyang/categories/Android/">Android</a>
+                      &nbsp;
+                    
+                  </span>&nbsp;&nbsp;
+                
+                
+                  <span>
+                <i class="iconfont icon-tag"></i>
+                    
+                      <a class="hover-with-bg" href="/Ouyang/tags/Android%E7%BB%98%E5%88%B6UI/">Android绘制UI</a>
+                    
+                  </span>
+                
+              </p>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <div class="post-prev col-6">
+                    
+                    
+                      <a href="/Ouyang/2020/04/17/Android%E6%8F%92%E4%BB%B6%E5%8C%96%E5%8E%9F%E7%90%86%E7%A0%94%E7%A9%B6/">
+                        <i class="fa fa-chevron-left"></i>
+                        <span class="hidden-mobile">Android插件化原理研究</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </div>
+                  <div class="post-next col-6">
+                    
+                    
+                      <a href="/Ouyang/2020/03/27/%E5%B8%B8%E8%A7%81Hexo%E5%91%BD%E4%BB%A4/">
+                        <span class="hidden-mobile">常见Hexo命令</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="fa fa-chevron-right"></i>
+                      </a>
+                    
+                  </div>
+                </div>
+              
+            </div>
+
+              
+          </div>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc-start"></div>
+<div id="toc">
+  <p class="h5"><i class="far fa-list-alt"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a class="z-depth-1" id="scroll-top-button" href="#" role="button">
+      <i class="fa fa-chevron-up scroll-top-arrow" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><b>Hexo</b></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"> <b>Fluid</b></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/popper.js/1.16.1/umd/popper.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="https://cdn.staticfile.org/mdbootstrap/4.13.0/js/mdb.min.js" ></script>
+<script  src="/Ouyang/js/main.js" ></script>
+
+
+  <script  src="/Ouyang/js/lazyload.js" ></script>
+
+
+
+  
+  <script  src="https://cdn.staticfile.org/tocbot/4.10.0/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var navHeight = $('#navbar').height();
+      var toc = $('#toc');
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+      var tocLimMax = 2 * boardTop + boardCtn.height();
+
+      $(window).scroll(function () {
+        var tocLimMin = $('#toc-start').offset().top - navHeight;
+        var scroH = document.body.scrollTop + document.documentElement.scrollTop;
+
+        if (tocLimMin <= scroH && scroH <= tocLimMax) {
+          toc.css({
+            'display': 'block',
+            'position': 'fixed',
+            'top': navHeight,
+          });
+        } else if (scroH <= tocLimMin) {
+          toc.css({
+            'position': '',
+            'top': '',
+          });
+        } else if (scroH > tocLimMax) {
+          toc.css('display', 'none');
+        }
+      });
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '.post-content',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc > p').css('visibility', 'visible');
+      }
+      var offset = boardCtn.css('margin-right')
+      $('#toc-ctn').css({
+        'right': offset
+      })
+    });
+  </script>
+
+
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/Ouyang/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+
+
+<!-- Plugins -->
+
+
+
+  <script  src="https://cdn.staticfile.org/prettify/188.0.0/prettify.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      $('pre').addClass('prettyprint  linenums');
+      prettyPrint();
+    })
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "Android智能盯盘绘制View&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/Ouyang/js/local-search.js" ></script>
+  <script>
+    var path = "/Ouyang/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      getSearchFile(path);
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <script>
+    $("#post img:not(.no-zoom img, img[no-zoom])").each(
+      function () {
+        var element = document.createElement("a");
+        $(element).attr("data-fancybox", "images");
+        $(element).attr("href", $(this).attr("src"));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

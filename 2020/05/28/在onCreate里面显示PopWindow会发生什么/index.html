@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/Ouyang/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/Ouyang/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aaron">
+  <meta name="keywords" content="">
+  <title>在onCreate里面显示PopWindow会发生什么? - 一个会摄影的程序猿</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/5.12.1/css/all.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/mdbootstrap/4.13.0/css/mdb.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/3.0.1/github-markdown.min.css" />
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1067060_qzomjdt8bmp.css">
+
+
+
+  <link  rel="stylesheet" href="/Ouyang/lib/prettify/tomorrow-night-eighties.min.css" />
+
+<link  rel="stylesheet" href="/Ouyang/css/main.css" />
+
+
+  <link defer rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+<!-- 自定义样式保持在最底部 -->
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/Ouyang/">&nbsp;<strong>一个会摄影的程序猿</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/Ouyang/">首页</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/Ouyang/archives/">归档</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/Ouyang/categories/">分类</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/Ouyang/tags/">标签</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/Ouyang/about/">关于</a>
+          </li>
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="view intro-2" id="background" parallax=true
+         style="background: url('/Ouyang/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask rgba-black-light flex-center">
+          <div class="container text-center white-text fadeInUp">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+                <p class="mt-3 post-meta">
+                  <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                  星期四, 五月 28日 2020, 2:50 下午
+                </p>
+              
+
+              <p class="mt-1">
+                
+                  
+                  <span class="post-meta">
+                    <i class="far fa-chart-bar"></i>
+                    1.8k 字
+                  </span>
+                
+
+                
+                  
+                  <span class="post-meta">
+                      <i class="far fa-clock"></i>
+                      8 分钟
+                  </span>
+                
+
+                
+              </p>
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5 z-depth-3" id="board">
+          <div class="post-content mx-auto" id="post">
+            
+            <div class="markdown-body">
+              <h4><span id="1在oncreate方法里面调用popupwindow的showasdropdown或者showatlocation会发生什么">1.在onCreate()方法里面调用PopupWindow的showAsDropDown或者showAtLocation会发生什么？</span></h4><p>​       我们来实践下，在onCreate里面写入如下代码</p>
+<pre><code class="java">   @Override
+   protected void onCreate(Bundle savedInstanceState)
+{
+   super.onCreate(savedInstanceState);
+
+   setContentView(R.layout.activity_main);
+   Toolbar toolbar = findViewById(R.id.toolbar);
+   setSupportActionBar(toolbar);
+
+   mTextView = findViewById(R.id.hello);
+   FloatingActionButton fab = findViewById(R.id.fab);
+   fab.setOnClickListener(new View.OnClickListener()
+   {
+      @Override
+      public void onClick(View view)
+      {
+         Snackbar.make(view, &quot;Replace with your own action&quot;, Snackbar.LENGTH_LONG)
+               .setAction(&quot;Action&quot;, null).show();
+      }
+   });
+
+   mPopupWindow = new PopupWindow(this.getBaseContext());
+   mPopupWindow.setContentView(new View(this.getBaseContext()));
+   mPopupWindow.showAtLocation(mTextView, 0, 0, 0);
+}</code></pre>
+<p>运行跑下出现如下异常，wtf</p>
+<p><img src="/Ouyang/images/popWindow/1.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+<p>这是什么鬼？why？</p>
+<h4><span id="2为啥会发生这个异常">2.为啥会发生这个异常？</span></h4><p>我们断点进去一步一步顺藤摸瓜，最终在ViewRootImpl的setView方法里面找到这个异常</p>
+<p><img src="/Ouyang/images/popWindow/2.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+<p><img src="/Ouyang/images/popWindow/3.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+<p>也就是说res这个鬼东西命中了ADD_BAD_SUBWINDOW_TOKEN，那这个res是从哪里来的呢？关键代码如下</p>
+<pre><code class="java">  res = mWindowSession.addToDisplay(mWindow, mSeq, mWindowAttributes,
+                            getHostVisibility(), mDisplay.getDisplayId(), mWinFrame,
+                            mAttachInfo.mContentInsets, mAttachInfo.mStableInsets,
+                            mAttachInfo.mOutsets, mAttachInfo.mDisplayCutout, mInputChannel);</code></pre>
+<p>它调用了Session里面的一个addToDisplay方法，最终会走到WMS的addWindow方法</p>
+<pre><code class="java">public int addToDisplay(IWindow window, int seq, WindowManager.LayoutParams attrs,
+        int viewVisibility, int displayId, Rect outFrame, Rect outContentInsets,
+        Rect outStableInsets, Rect outOutsets,
+        DisplayCutout.ParcelableWrapper outDisplayCutout, InputChannel outInputChannel) {
+    return mService.addWindow(this, window, seq, attrs, viewVisibility, displayId, outFrame,
+            outContentInsets, outStableInsets, outOutsets, outDisplayCutout, outInputChannel);
+}</code></pre>
+<p>我们来看下wms这个addWindow方法是干嘛的，贴代码如下：</p>
+<pre><code class="java">    public int addWindow(Session session, IWindow client, int seq,
+            WindowManager.LayoutParams attrs, int viewVisibility, int displayId,
+            Rect outContentInsets, Rect outStableInsets, Rect outOutsets,
+            InputChannel outInputChannel) {
+        int[] appOp = new int[1];
+//  权限检测，有兴趣的可以自己点进去看看
+        int res = mPolicy.checkAddPermission(attrs, appOp);
+        if (res != WindowManagerGlobal.ADD_OKAY) {
+            return res;
+        }
+
+        ...
+        synchronized(mWindowMap) { 
+        /** final WindowState win = new WindowState(this, session, client,    token, parentWindow,
+             mWindowMap.put(client.asBinder(), win);
+              win = mWindow = new W(this);
+             public ViewRootImpl(Context context, Display display) {
+                ...
+                mWindow = new W(this);
+                ...
+             }
+
+        */
+          appOp[0], seq, attrs, viewVisibility, session.mUid,
+          session.mCanAddInternalSystemWindow);
+
+            //异常1
+            if (mWindowMap.containsKey(client.asBinder())) {
+                Slog.w(TAG_WM, &quot;Window &quot; + client + &quot; is already added&quot;);
+                return WindowManagerGlobal.ADD_DUPLICATE_ADD;
+            }
+
+            /**
+              window类型type:
+              type表示Window的类型，Window有三种类型，分别是应用Window，子
+              Window和系统Window。
+
+              应用类Window对应着一个Activity。子Window不能单独存在，它需要附属在特定的父Window中，比如Dialog就是一个子Window。系统Window
+              是需要声明权限才能创建的Window，比如Toast和系统状态栏这些都是系统Window。
+
+              Window是分层的，每个Window都有对应的z-ordered，层级大的会覆盖    在层级小的Window上。在三类Window中，应用Window的层级范围是1~99，子
+              Window的层级范围是1000~1999，系统Window的层级范围是2000~2999。很显然系统Window的层级是最大的，而且系统层级有很多值，一
+              般我们可以选用TYPE_SYSTEM_ERROR或者TYPE_SYSTEM_OVERLAY，另外重要的是要记得在清单文件中声明权限。
+
+            */
+            if (type &gt;= FIRST_SUB_WINDOW &amp;&amp; type &lt;= LAST_SUB_WINDOW) {
+                parentWindow = windowForClientLocked(null, attrs.token, false);
+                if (parentWindow == null) {
+                    Slog.w(TAG_WM, &quot;Attempted to add window with token that is not a window: &quot;
+                          + attrs.token + &quot;.  Aborting.&quot;);
+                    return WindowManagerGlobal.ADD_BAD_SUBWINDOW_TOKEN;
+                }
+                //子Window
+                if (parentWindow.mAttrs.type &gt;= FIRST_SUB_WINDOW
+                        &amp;&amp; parentWindow.mAttrs.type &lt;= LAST_SUB_WINDOW) {
+                    Slog.w(TAG_WM, &quot;Attempted to add window with token that is a sub-window: &quot;
+                            + attrs.token + &quot;.  Aborting.&quot;);
+                    return WindowManagerGlobal.ADD_BAD_SUBWINDOW_TOKEN;
+                }
+            }
+
+            if (type == TYPE_PRIVATE_PRESENTATION &amp;&amp; !displayContent.isPrivate()) {
+                Slog.w(TAG_WM, &quot;Attempted to add private presentation window to a non-private display.  Aborting.&quot;);
+                return WindowManagerGlobal.ADD_PERMISSION_DENIED;
+            }
+
+           ...
+
+            if (token == null) {
+               //应用Window
+                if (rootType &gt;= FIRST_APPLICATION_WINDOW &amp;&amp; rootType &lt;= LAST_APPLICATION_WINDOW) {
+                    Slog.w(TAG_WM, &quot;Attempted to add application window with unknown token &quot;
+                          + attrs.token + &quot;.  Aborting.&quot;);
+                    return WindowManagerGlobal.ADD_BAD_APP_TOKEN;
+                }
+
+
+                if (rootType == TYPE_WALLPAPER) {
+                    Slog.w(TAG_WM, &quot;Attempted to add wallpaper window with unknown token &quot;
+                          + attrs.token + &quot;.  Aborting.&quot;);
+                    return WindowManagerGlobal.ADD_BAD_APP_TOKEN;
+                }
+
+               ....
+
+                if (rootType == TYPE_ACCESSIBILITY_OVERLAY) {
+                    Slog.w(TAG_WM, &quot;Attempted to add Accessibility overlay window with unknown token &quot;
+                            + attrs.token + &quot;.  Aborting.&quot;);
+                    return WindowManagerGlobal.ADD_BAD_APP_TOKEN;
+                }
+
+                if (type == TYPE_TOAST) {
+                    // Apps targeting SDK above N MR1 cannot arbitrary add toast windows.
+                    if (doesAddToastWindowRequireToken(attrs.packageName, callingUid,
+                            parentWindow)) {
+                        Slog.w(TAG_WM, &quot;Attempted to add a toast window with unknown token &quot;
+                                + attrs.token + &quot;.  Aborting.&quot;);
+                        return WindowManagerGlobal.ADD_BAD_APP_TOKEN;
+                    }
+                }
+             ...
+            if (type == TYPE_TOAST) {
+                if (!getDefaultDisplayContentLocked().canAddToastWindowForUid(callingUid)) {
+                    Slog.w(TAG_WM, &quot;Adding more than one toast window for UID at a time.&quot;);
+                    return WindowManagerGlobal.ADD_DUPLICATE_ADD;
+                }
+                ...
+            }
+
+            // From now on, no exceptions or errors allowed!
+
+            res = WindowManagerGlobal.ADD_OKAY;
+            if (mCurrentFocus == null) {
+                mWinAddedSinceNullFocus.add(win);
+            }
+            ...
+
+            win.attach();
+            mWindowMap.put(client.asBinder(), win);
+           ...
+
+            boolean imMayMove = true;
+
+            win.mToken.addWindow(win);
+            ...
+
+        return res;
+    }</code></pre>
+<p>在上面的addWindow方法里面我们看到当type在1000-1999时候，如果parentWindow为空会返回WindowManagerGlobal的ADD_BAD_SUBWINDOW_TOKEN, 那为啥PopWindow的type是在这个范围呢？我们查看PopWindow源码的createPopupLayoutParams方法的时候发现其赋值type的地方</p>
+<pre><code class="java">protected final WindowManager.LayoutParams createPopupLayoutParams(IBinder token) {
+    final WindowManager.LayoutParams p = new WindowManager.LayoutParams();
+
+    // These gravity settings put the view at the top left corner of the
+    // screen. The view is then positioned to the appropriate location by
+    // setting the x and y offsets to match the anchor&#39;s bottom-left
+    // corner.
+    p.gravity = computeGravity();
+    p.flags = computeFlags(p.flags);
+    p.type = mWindowLayoutType; // 就是这个变量！！
+    p.token = token;
+    p.softInputMode = mSoftInputMode;
+    p.windowAnimations = computeAnimationResource();
+
+    if (mBackground != null) {
+        p.format = mBackground.getOpacity();
+    } else {
+        p.format = PixelFormat.TRANSLUCENT;
+    }
+  ....
+}</code></pre>
+<p>我们看到里面有个全局变量mWindowLayoutType，这个初始值为</p>
+<pre><code class="java">private int mWindowLayoutType = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL;</code></pre>
+<pre><code class="java">public static final int TYPE_APPLICATION_PANEL = FIRST_SUB_WINDOW = 1000;</code></pre>
+<p>所以看到PopWindow的type就是1000。那为什么parentWindow获取空呢？我们继续跟踪这个方法</p>
+<pre><code class="java">parentWindow = windowForClientLocked(null, attrs.token, false);</code></pre>
+<pre><code class="java">final WindowState windowForClientLocked(Session session, IBinder client, boolean throwOnError) {
+    WindowState win = mWindowMap.get(client);
+    if (localLOGV) Slog.v(TAG_WM, &quot;Looking up client &quot; + client + &quot;: &quot; + win);
+    if (win == null) {
+        if (throwOnError) {
+            throw new IllegalArgumentException(
+                    &quot;Requested window &quot; + client + &quot; does not exist&quot;);
+        }
+        Slog.w(TAG_WM, &quot;Failed looking up window callers=&quot; + Debug.getCallers(3));
+        return null;
+    }
+    if (session != null &amp;&amp; win.mSession != session) {
+        if (throwOnError) {
+            throw new IllegalArgumentException(&quot;Requested window &quot; + client + &quot; is in session &quot;
+                    + win.mSession + &quot;, not &quot; + session);
+        }
+        Slog.w(TAG_WM, &quot;Failed looking up window callers=&quot; + Debug.getCallers(3));
+        return null;
+    }
+
+    return win;
+}</code></pre>
+<p>上面代码传入的attr.token为空了 导致获取win直接为空，最后直接返回空了命中！那attr.token为啥为空呢？</p>
+<p>还记得我们showAtLocation吗，里面有个token传参，间接导致PopWindow里面的WindowManager.LayoutParams中的token参数为空，最后直接命中！原来一切根源都是这个外部传参token为空！那最后来追究为啥在onCreate()方法里面 这个token为啥空了。</p>
+<h4><span id="3根源mwindowtoken为空">3.根源mWindowToken为空</span></h4><pre><code class="java">public void showAtLocation(View parent, int gravity, int x, int y) {
+    mParentRootView = new WeakReference&lt;&gt;(parent.getRootView());
+    showAtLocation(parent.getWindowToken(), gravity, x, y); // 此处的parent.getWindowToken()为空了
+}</code></pre>
+<p>断点查看到parent的View的getWindowToken方法里面的mAttachInfo为空了，那我们再继续查询mAttachInfo为啥空了，mAttachInfo在哪里赋值的？我们全局搜索下在View的dispatchAttachedToWindow方法里面赋值的，原来这个mAttachInfo是在ViewRootImpl初始化的时候赋值的</p>
+<pre><code class="java">public ViewRootImpl(Context context, Display display) {
+    mContext = context;
+    mWindowSession = WindowManagerGlobal.getWindowSession();
+    mDisplay = display;
+    .......
+    mAttachInfo = new View.AttachInfo(mWindowSession, mWindow, display, this, mHandler, this, context); // 看到没，就是这儿！！
+    .....
+}</code></pre>
+<p>我们知道ViewRootImpl是在WindowManagerGlobal的addView时候添加进来的，而addView是在ActivityThread的handleResumeActivity方法添加的。</p>
+<pre><code class="java">@Override
+public void handleResumeActivity(IBinder token, boolean finalStateRequest, boolean isForward,
+        String reason) {
+    // If we are getting ready to gc after going to the background, well
+    // we are back active so skip it.
+    unscheduleGcIdler();
+    mSomeActivitiesChanged = true;
+
+    // TODO Push resumeArgs into the activity for consideration
+    final ActivityClientRecord r = performResumeActivity(token, finalStateRequest, reason);     // performResumeActivity会走到Activity的onResume方法
+    if (r == null) {
+        // We didn&#39;t actually resume the activity, so skipping any follow-up actions.
+        return;
+    }
+
+    final Activity a = r.activity;
+    .........
+        if (a.mVisibleFromClient) {
+            if (!a.mWindowAdded) {
+                a.mWindowAdded = true;
+                wm.addView(decor, l); // 就在此处添加View
+            } else {
+                // The activity will get a callback for this {@link LayoutParams} change
+                // earlier. However, at that time the decor will not be set (this is set
+                // in this method), so no action will be taken. This call ensures the
+                // callback occurs with the decor set.
+                a.onWindowAttributesChanged(l);
+            }
+        }
+    .........
+    .........
+}</code></pre>
+<p>我们看到addView其实在performResumeActivity后才添加进来的，你在Activity的onCreate里面当然不会addView了。这下终于水落石出了！</p>
+<p>最后总结下：</p>
+<p>当我们在onCreate里面显示PopWindow的时候，由于还没把顶层View添加进来导致ViewRootImpl还没创建，最后mAttachInfo也为空，导致最终的mWindowToken也空了，最终引发我们崩溃的血案！</p>
+
+            </div>
+            <hr>
+            <div>
+              <p>
+                
+                  <span>
+                <i class="iconfont icon-inbox"></i>
+                    
+                      <a class="hover-with-bg" href="/Ouyang/categories/Android/">Android</a>
+                      &nbsp;
+                    
+                  </span>&nbsp;&nbsp;
+                
+                
+                  <span>
+                <i class="iconfont icon-tag"></i>
+                    
+                      <a class="hover-with-bg" href="/Ouyang/tags/Android%E5%BC%80%E5%8F%91/">Android开发</a>
+                    
+                  </span>
+                
+              </p>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <div class="post-prev col-6">
+                    
+                    
+                      <a href="/Ouyang/2020/07/06/%E8%A7%A3%E5%86%B3Default-Activity-not-found/">
+                        <i class="fa fa-chevron-left"></i>
+                        <span class="hidden-mobile">解决Default Activity not found</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </div>
+                  <div class="post-next col-6">
+                    
+                    
+                      <a href="/Ouyang/2020/05/19/%E4%BB%AA%E8%A1%A8%E7%9B%98%E8%87%AA%E7%BB%98View/">
+                        <span class="hidden-mobile">仪表盘自绘View</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="fa fa-chevron-right"></i>
+                      </a>
+                    
+                  </div>
+                </div>
+              
+            </div>
+
+              
+          </div>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc-start"></div>
+<div id="toc">
+  <p class="h5"><i class="far fa-list-alt"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a class="z-depth-1" id="scroll-top-button" href="#" role="button">
+      <i class="fa fa-chevron-up scroll-top-arrow" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><b>Hexo</b></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"> <b>Fluid</b></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/popper.js/1.16.1/umd/popper.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="https://cdn.staticfile.org/mdbootstrap/4.13.0/js/mdb.min.js" ></script>
+<script  src="/Ouyang/js/main.js" ></script>
+
+
+  <script  src="/Ouyang/js/lazyload.js" ></script>
+
+
+
+  
+  <script  src="https://cdn.staticfile.org/tocbot/4.10.0/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var navHeight = $('#navbar').height();
+      var toc = $('#toc');
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+      var tocLimMax = 2 * boardTop + boardCtn.height();
+
+      $(window).scroll(function () {
+        var tocLimMin = $('#toc-start').offset().top - navHeight;
+        var scroH = document.body.scrollTop + document.documentElement.scrollTop;
+
+        if (tocLimMin <= scroH && scroH <= tocLimMax) {
+          toc.css({
+            'display': 'block',
+            'position': 'fixed',
+            'top': navHeight,
+          });
+        } else if (scroH <= tocLimMin) {
+          toc.css({
+            'position': '',
+            'top': '',
+          });
+        } else if (scroH > tocLimMax) {
+          toc.css('display', 'none');
+        }
+      });
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '.post-content',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc > p').css('visibility', 'visible');
+      }
+      var offset = boardCtn.css('margin-right')
+      $('#toc-ctn').css({
+        'right': offset
+      })
+    });
+  </script>
+
+
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/Ouyang/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+
+
+<!-- Plugins -->
+
+
+
+  <script  src="https://cdn.staticfile.org/prettify/188.0.0/prettify.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      $('pre').addClass('prettyprint  linenums');
+      prettyPrint();
+    })
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "在onCreate里面显示PopWindow会发生什么?&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/Ouyang/js/local-search.js" ></script>
+  <script>
+    var path = "/Ouyang/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      getSearchFile(path);
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <script>
+    $("#post img:not(.no-zoom img, img[no-zoom])").each(
+      function () {
+        var element = document.createElement("a");
+        $(element).attr("data-fancybox", "images");
+        $(element).attr("href", $(this).attr("src"));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

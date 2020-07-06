@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/Ouyang/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/Ouyang/img/favicon.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="aaron">
+  <meta name="keywords" content="">
+  <title>Binder机制初探 - 一个会摄影的程序猿</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/5.12.1/css/all.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/mdbootstrap/4.13.0/css/mdb.min.css" />
+<link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/3.0.1/github-markdown.min.css" />
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1067060_qzomjdt8bmp.css">
+
+
+
+  <link  rel="stylesheet" href="/Ouyang/lib/prettify/tomorrow-night-eighties.min.css" />
+
+<link  rel="stylesheet" href="/Ouyang/css/main.css" />
+
+
+  <link defer rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+<!-- 自定义样式保持在最底部 -->
+
+
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/Ouyang/">&nbsp;<strong>一个会摄影的程序猿</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/Ouyang/">首页</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/Ouyang/archives/">归档</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/Ouyang/categories/">分类</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/Ouyang/tags/">标签</a>
+          </li>
+        
+          
+          
+          
+          
+          <li class="nav-item">
+            <a class="nav-link" href="/Ouyang/about/">关于</a>
+          </li>
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="view intro-2" id="background" parallax=true
+         style="background: url('/Ouyang/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask rgba-black-light flex-center">
+          <div class="container text-center white-text fadeInUp">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              
+                <p class="mt-3 post-meta">
+                  <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                  星期五, 三月 27日 2020, 5:23 下午
+                </p>
+              
+
+              <p class="mt-1">
+                
+                  
+                  <span class="post-meta">
+                    <i class="far fa-chart-bar"></i>
+                    2.9k 字
+                  </span>
+                
+
+                
+                  
+                  <span class="post-meta">
+                      <i class="far fa-clock"></i>
+                      11 分钟
+                  </span>
+                
+
+                
+              </p>
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5 z-depth-3" id="board">
+          <div class="post-content mx-auto" id="post">
+            
+            <div class="markdown-body">
+              <p>整个文章目录如下图：</p>
+<p><img src="/Ouyang/images/binder/ha.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+<h4><span id="1binder概述"><strong>1.Binder概述</strong></span></h4><ul>
+<li><ul>
+<li><p>Binder中文名“粘合剂”，粘合了两个不同的进程。那Binder到底是什么呢？</p>
+<ul>
+<li>从机制角度来说，Binder是一种Android实现跨进程通信（IPC）的方式</li>
+<li>从组成结构来说，Binder是一种虚拟的物理设备驱动</li>
+<li>从代码实现角度来说，Binder是一个类，实现了IBinder接口</li>
+</ul>
+</li>
+<li><p>Android 系统是基于 Linux 内核的，Linux 已经提供了管道、消息队列、共享内存和 Socket 等 IPC 机制。那为什么 Android 还要提供 Binder 来实现 IPC 呢？主要是基于<strong>性能</strong>、<strong>稳定性</strong>和<strong>安全性</strong>几方面的原因。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h5><span id="性能"><strong>性能</strong></span></h5><p>​    从进程A将数据拷贝到进程B，传统的Socket主要用在跨网络的进程间通信和本机上进程间的低速通信，消息队列和管道采用存储-转发的方式，即数据先从发送方缓存区拷贝到内核开辟的缓存区中，然后再从内核缓存区拷贝到接收方缓存区，至少有两次拷贝过程。共享内存无需拷贝，但难以控制。Binder仅需要一次数据拷贝，性能上仅次于共享内存。</p>
+<table>
+<thead>
+<tr>
+<th>IPC方式</th>
+<th>数据拷贝次数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>共享内存</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Binder</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Socket/管道/消息队列</td>
+<td>2</td>
+</tr>
+</tbody></table>
+<h5><span id="稳定性"><strong>稳定性</strong></span></h5><p>​    Binder 基于 C/S 架构，客户端（Client）有什么需求就丢给服务端（Server）去完成，架构清晰、职责明确又相互独立，自然稳定性更好。共享内存虽然无需拷贝，但是控制负责，难以使用。从稳定性的角度讲，Binder 机制是优于内存共享的。</p>
+<h5><span id="安全性"><strong>安全性</strong></span></h5><p>​    首先传统的 IPC 接收方无法获得对方可靠的进程用户ID/进程ID（UID/PID），从而无法鉴别对方身份。Android 为每个安装好的 APP 分配了自己的 UID，故而进程的 UID 是鉴别进程身份的重要标志。传统的 IPC 只能由用户在数据包中填入 UID/PID，但这样不可靠，容易被恶意程序利用。可靠的身份标识只有由 IPC 机制在内核中添加。其次传统的 IPC 访问接入点是开放的，只要知道这些接入点的程序都可以和对端建立连接，不管怎样都无法阻止恶意程序通过猜测接收方地址获得连接。同时 Binder 既支持实名 Binder，又支持匿名 Binder，安全性高。</p>
+<p>​    基于以上选择Binder的优势：</p>
+<table>
+<thead>
+<tr>
+<th>优势</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>性能</td>
+<td>一次数据拷贝，性能上仅次于共享内存</td>
+</tr>
+<tr>
+<td>稳定性</td>
+<td>基于 C/S 架构，职责明确、架构清晰，因此稳定性好</td>
+</tr>
+<tr>
+<td>安全性</td>
+<td>为每个 APP 分配 UID，进程的 UID 是鉴别进程身份的重要标志</td>
+</tr>
+</tbody></table>
+<h4><span id="2-传统linux进程通信原理"><strong>2. 传统Linux进程通信原理</strong></span></h4><h5><span id="进程隔离">进程隔离</span></h5><ul>
+<li>操作系统中，进程与进程间内存是不共享的。两个进程就像两个平行的世界，A 进程没法直接访问 B 进程的数据，这就是进程隔离的通俗解释。A 进程和 B 进程之间要进行数据交互就得采用特殊的通信机制：进程间通信（IPC）</li>
+</ul>
+<h5><span id="进程空间划分">进程空间划分</span></h5><ul>
+<li><p>一个进程空间分为用户空间（User Space）和内核空间（Kernel Space）</p>
+</li>
+<li><p>进程间的用户空间数据不可共享</p>
+</li>
+<li><p>进程间的内核空间数据可共享</p>
+</li>
+<li><p>进程内用户空间与内核空间交互需要通过系统调用</p>
+</li>
+<li><p>系统调用</p>
+</li>
+</ul>
+<pre><code>copy_from_user() //将数据从用户空间拷贝到内核空间
+copy_to_user() //将数据从内核空间拷贝到用户空间</code></pre><p><img src="/Ouyang/images/binder/1.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+<h5><span id="linux传统ipc通信">Linux传统IPC通信</span></h5><ul>
+<li>传统的 IPC 方式中，进程之间是如何实现通信的？消息发送方将要发送的数据存放在内存缓存区中，通过系统调用进入内核态。然后内核程序在内核空间分配内存，开辟一块内核缓存区，调用 copy_from_user() 函数将数据从用户空间的内存缓存区拷贝到内核空间的内核缓存区中。同样的，接收方进程在接收数据时在自己的用户空间开辟一块内存缓存区，然后内核程序调用 copy_to_user() 函数将数据从内核缓存区拷贝到接收进程的内存缓存区。这样数据发送方进程和数据接收方进程就完成了一次数据传输，我们称完成了一次进程间通信。如下图：</li>
+</ul>
+<p><img src="/Ouyang/images/binder/2.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+<ul>
+<li><ul>
+<li><ul>
+<li>可以看到传统的IPC通信需要两次数据拷贝，性能低下</li>
+<li>接收数据的缓存需要接收方提供，但接收方不知道缓存有多大，一般尽量开辟一个很大的缓存空间，有点浪费资源。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4><span id="3-binder跨进程通信原理"><strong>3. Binder跨进程通信原理</strong></span></h4><h5><span id="内存映射">内存映射</span></h5><ul>
+<li>Binder IPC 机制中涉及到的内存映射通过 mmap() 来实现，mmap() 是操作系统中一种内存映射的方法。内存映射简单的讲就是将用户空间的一块内存区域映射到内核空间。映射关系建立后，用户对这块内存区域的修改可以直接反应到内核空间；反之内核空间对这段区域的修改也能直接反应到用户空间。</li>
+<li>简单示意图如下：<ul>
+<li>假设进程1、2的虚拟内存区域同时映射到同1个共享对象；</li>
+<li>当进程1对其虚拟内存区域进行写操作时，也会映射到进程2中的虚拟内存区域。</li>
+</ul>
+</li>
+</ul>
+<p><img src="/Ouyang/images/binder/3.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+<h5><span id="实现过程">实现过程</span></h5><ul>
+<li>调用系统下的系统调用函数：mmap()</li>
+<li>该函数的作用是创建虚拟内存区域 + 与共享对象建立映射关系。</li>
+<li>函数原型</li>
+</ul>
+<pre><code>/**
+  * 函数原型
+  */
+void *mmap(void *start, size_t length, int prot, int flags, int fd, off_t offset);
+
+/**
+  * 具体使用（用户进程调用mmap（））
+  * 下述代码开辟了一片大小 = MAP_SIZE的接收缓存区 &amp; 关联到共享对象中（即建立映射）
+  */
+  mmap(NULL, MAP_SIZE, PROT_READ, MAP_PRIVATE, fd, 0);</code></pre><ul>
+<li><ul>
+<li><ul>
+<li><ul>
+<li><ul>
+<li>步骤1：创建虚拟内存区域<br>步骤2：实现地址映射关系，即：进程的虚拟地址空间 -&gt;&gt; 共享对象</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Binder驱动 </p>
+<ul>
+<li>在 Android 系统中，运行在内核空间，负责各个用户进程通过 Binder 实现通信的内核模块。</li>
+<li>综合概述如下图所示</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="/Ouyang/images/binder/4.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+<h5><span id="binder通信机制模型">Binder通信机制模型</span></h5><ul>
+<li>基于C/S模式<ul>
+<li>Client进程：使用服务的进程</li>
+<li>Server进程：提供服务的进程</li>
+<li>ServiceManager进程：管理Service注册与查询</li>
+<li>Binder驱动：一种虚拟设备，连接Client进程、Server进程和ServiceManager进程的桥梁；通过内存映射传递进程间数据。</li>
+</ul>
+</li>
+</ul>
+<p><img src="/Ouyang/images/binder/5.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+<h5><span id="binder代理模式">Binder代理模式</span></h5><ul>
+<li>Client进程想要 Server进程中某个对象（Object）是如何实现的呢？毕竟它们分属不同的进程，Client进程没法直接使用 Server进程中的 Object。</li>
+<li>Client进程请求Server进程Object对象时候，Binder驱动会对数据做一层转换，返回一个代理对象ProxyObject，这个ProxyObject具有和Object对象一样的方法，不具备Server进程中的Object对象那些方法的能力，但请求的时候只需要把请求参数交给驱动即可。</li>
+<li>当 Binder 驱动接收到 Client 进程的消息后，发现这是个 ProxyObject 就去查询自己维护的表单，一查发现这是 Server 进程 Object 的代理对象。于是就会去通知Server进程调用Object 的方法，并要求Server进程把返回结果发给自己。当驱动拿到Server进程的返回结果后就会转发给 Client进程。</li>
+<li>示意图如下：</li>
+</ul>
+<p><img src="/Ouyang/images/binder/6.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+<h5><span id="binder-ipc通信过程">Binder IPC通信过程</span></h5><ul>
+<li>Binder 驱动在内核空间创建一个<strong>数据接收缓存区</strong></li>
+<li>接着在内核空间开辟一块<strong>内核缓存区</strong>，建立<strong>内核缓存区</strong>和<strong>内核中数据接收缓存区</strong>之间的映射关系，以及<strong>内核中数据接收缓存区</strong>和<strong>接收进程用户空间地址</strong>的映射关系；</li>
+<li>发送方进程通过系统调用 copy_from_user() 将数据 copy 到内核中的<strong>内核缓存区</strong>，由于内核缓存区和接收进程的用户空间存在内存映射，因此也就相当于把数据发送到了接收进程的用户空间，这样便完成了一次进程间的通信。</li>
+<li>如下图所示：</li>
+</ul>
+<p><img src="/Ouyang/images/binder/7.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+<h4><span id="4-binder机制在android实践aidl"><strong>4. Binder机制在Android实践(AIDL)</strong></span></h4><p>这里Server进程是开启了一个继承Service的类，来模拟进程间通信的。</p>
+<h5><span id="注册服务">注册服务</span></h5><ul>
+<li>这里我们用AS工具新建一个AIDL文件，IBookMananger.aidl，接口里面定义一个addBook()、getBookList()方法，其中Book类实现了Parcelable接口。</li>
+</ul>
+<pre><code>interface IBookMananger {
+    /**
+     * Demonstrates some basic types that you can use as parameters
+     * and return values in AIDL.
+     */
+    void basicTypes(int anInt, long aLong, boolean aBoolean, float aFloat,
+            double aDouble, String aString);
+
+            void addBook(inout Book book);
+
+            List&lt;Book&gt; getBookList();
+}</code></pre><ul>
+<li><ul>
+<li>创建一个和Book同名的aidl文件，Book.aidl</li>
+</ul>
+</li>
+</ul>
+<pre><code>// Book.aidl
+package com.example.aidldemo.bean;
+
+parcelable Book;</code></pre><ul>
+<li><ul>
+<li>然后Make Project ，SDK为自动为我们生成对应的IBookManager类，目录在generatedJava</li>
+</ul>
+</li>
+</ul>
+<p><img src="/Ouyang/images/binder/8.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+<h5><span id="获取服务">获取服务</span></h5><ul>
+<li>Client通过binderService绑定Server进程注册的Server进程</li>
+<li>调用Server进程的onBind()得到创建的Binder对象的代理对象Proxy</li>
+<li>Client进程通过调用onServiceConnected()获得Server进程创建的代理对象Proxy。</li>
+</ul>
+<pre><code>    private ServiceConnection mServiceConnection = new ServiceConnection()
+    {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder binder)
+        {
+                          //此处返回的是一个代理对象Proxy
+            //通过服务端onBind方法返回的binder对象得到IBookManager的实例，得到实例就可以调用它的方法了
+            mIBookMananger = IBookMananger.Stub.asInterface(binder);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name)
+        {
+            mIBookMananger = null;
+        }
+    };
+    public static com.example.aidldemo.IBookMananger asInterface(android.os.IBinder obj)
+    {
+        if ((obj == null))
+        {
+            return null;
+        }
+        android.os.IInterface iin = obj.queryLocalInterface(DESCRIPTOR);
+                //如果是同一个进程调用则返回IBookManager对象，否则跨进程调用则返回Proxy对象，即 
+                  Binder类的代理对象。
+        if (((iin != null) &amp;&amp; (iin instanceof com.example.aidldemo.IBookMananger)))
+        {
+            return ((com.example.aidldemo.IBookMananger) iin);
+        }
+        return new com.example.aidldemo.IBookMananger.Stub.Proxy(obj);
+    }</code></pre><h5><span id="使用服务">使用服务</span></h5><ul>
+<li>Client进程 将参数（Book对象）发送到Server进程</li>
+<li>Server进程根据Client进程要求调用目标方法（即addBook函数）</li>
+<li>Server进程 将目标方法的结果（即加法后的结果）返回给Client进程</li>
+</ul>
+<pre><code>    //1. Client进程 将需要传送的数据写入到Parcel对象中
+    @Override public void addBook(com.example.aidldemo.bean.Book book) throws android.os.RemoteException
+    {
+        android.os.Parcel _data = android.os.Parcel.obtain();
+        android.os.Parcel _reply = android.os.Parcel.obtain();
+        try {
+            _data.writeInterfaceToken(DESCRIPTOR);
+            if ((book!=null)) {
+                _data.writeInt(1);
+                book.writeToParcel(_data, 0);
+            }
+            else {
+                _data.writeInt(0);
+            }
+    // 2. 通过 调用代理对象的transact（）将上述数据发送到Binder驱动，并且以_reply结果返回给Client进程
+            mRemote.transact(IBookMananger.Stub.TRANSACTION_addBook, _data, _reply, 0);
+            _reply.readException();
+            if ((0!=_reply.readInt())) {
+                book.readFromParcel(_reply);
+            }
+        }
+        finally {
+            _reply.recycle();
+            _data.recycle();
+        }
+    }
+    // 注：在发送数据后，Client进程的该线程会暂时被挂起
+       // 所以不要在Server进程执行的耗时操作
+            @Override
+            public java.util.List&lt;com.example.aidldemo.bean.Book&gt; getBookList() throws android.os.RemoteException
+            {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                java.util.List&lt;com.example.aidldemo.bean.Book&gt; _result;
+                try
+                {
+                    // 1. Binder驱动根据代理对象沿原路将结果返回并通知Client进程获取返回结果，client进程会拿到这个result展示在UI
+                    // 2. 通过代理对象 接收结果（之前被挂起的线程被唤醒）
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    mRemote.transact(Stub.TRANSACTION_getBookList, _data, _reply, 0);
+                    _reply.readException();
+                    _result = _reply.createTypedArrayList(com.example.aidldemo.bean.Book.CREATOR);
+                }
+                finally
+                {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+                return _result;
+            }</code></pre><p>​    通过addBook将数据发送给Server进程进行计算，并将结果返回给Client端，toast添加book的数量。Demo示意图如下：</p>
+<p>​    <img src="/Ouyang/images/binder/9.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+<p>总结，整个时序逻辑如下：</p>
+<p><img src="/Ouyang/images/binder/10.png" srcset="/Ouyang/img/loading.gif" alt="alt"></p>
+<p>PS：受水平有限，只是对Binder一个很浅的初步认识总结。</p>
+
+            </div>
+            <hr>
+            <div>
+              <p>
+                
+                  <span>
+                <i class="iconfont icon-inbox"></i>
+                    
+                      <a class="hover-with-bg" href="/Ouyang/categories/Android/">Android</a>
+                      &nbsp;
+                    
+                  </span>&nbsp;&nbsp;
+                
+                
+              </p>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <div class="post-prev col-6">
+                    
+                    
+                      <a href="/Ouyang/2020/03/27/%E5%B8%B8%E8%A7%81Hexo%E5%91%BD%E4%BB%A4/">
+                        <i class="fa fa-chevron-left"></i>
+                        <span class="hidden-mobile">常见Hexo命令</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </div>
+                  <div class="post-next col-6">
+                    
+                    
+                      <a href="/Ouyang/2020/03/27/Android%E5%B1%8F%E5%B9%95%E9%80%82%E9%85%8D%E6%96%B9%E6%A1%88/">
+                        <span class="hidden-mobile">Android屏幕适配方案</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="fa fa-chevron-right"></i>
+                      </a>
+                    
+                  </div>
+                </div>
+              
+            </div>
+
+              
+          </div>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc-start"></div>
+<div id="toc">
+  <p class="h5"><i class="far fa-list-alt"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a class="z-depth-1" id="scroll-top-button" href="#" role="button">
+      <i class="fa fa-chevron-up scroll-top-arrow" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><b>Hexo</b></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"> <b>Fluid</b></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/popper.js/1.16.1/umd/popper.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="https://cdn.staticfile.org/mdbootstrap/4.13.0/js/mdb.min.js" ></script>
+<script  src="/Ouyang/js/main.js" ></script>
+
+
+  <script  src="/Ouyang/js/lazyload.js" ></script>
+
+
+
+  
+  <script  src="https://cdn.staticfile.org/tocbot/4.10.0/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var navHeight = $('#navbar').height();
+      var toc = $('#toc');
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+      var tocLimMax = 2 * boardTop + boardCtn.height();
+
+      $(window).scroll(function () {
+        var tocLimMin = $('#toc-start').offset().top - navHeight;
+        var scroH = document.body.scrollTop + document.documentElement.scrollTop;
+
+        if (tocLimMin <= scroH && scroH <= tocLimMax) {
+          toc.css({
+            'display': 'block',
+            'position': 'fixed',
+            'top': navHeight,
+          });
+        } else if (scroH <= tocLimMin) {
+          toc.css({
+            'position': '',
+            'top': '',
+          });
+        } else if (scroH > tocLimMax) {
+          toc.css('display', 'none');
+        }
+      });
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '.post-content',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc > p').css('visibility', 'visible');
+      }
+      var offset = boardCtn.css('margin-right')
+      $('#toc-ctn').css({
+        'right': offset
+      })
+    });
+  </script>
+
+
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/Ouyang/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+
+
+<!-- Plugins -->
+
+
+
+  <script  src="https://cdn.staticfile.org/prettify/188.0.0/prettify.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      $('pre').addClass('prettyprint  linenums');
+      prettyPrint();
+    })
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "Binder机制初探&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/Ouyang/js/local-search.js" ></script>
+  <script>
+    var path = "/Ouyang/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      getSearchFile(path);
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script defer src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <script>
+    $("#post img:not(.no-zoom img, img[no-zoom])").each(
+      function () {
+        var element = document.createElement("a");
+        $(element).attr("data-fancybox", "images");
+        $(element).attr("href", $(this).attr("src"));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
